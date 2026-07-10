@@ -38,7 +38,23 @@ final class Metadata {
 		$path        = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$path        = untrailingslashit( $path );
 
-		if ( '/.well-known/oauth-authorization-server' === $path ) {
+		// Subdirectory installs: the well-known path arrives as
+		// "/blog/.well-known/..." — strip the install prefix before matching.
+		$home_path = Settings::home_path();
+		if ( '' !== $home_path && 0 === strpos( $path, $home_path . '/' ) ) {
+			$path = substr( $path, strlen( $home_path ) );
+		}
+		// Index permalinks route everything through "/index.php/...".
+		if ( 0 === strpos( $path, '/index.php/' ) ) {
+			$path = substr( $path, strlen( '/index.php' ) );
+		}
+
+		// Prefix matches: RFC 8414 / RFC 9728 allow the resource path to be
+		// appended to the well-known path, so match both bare and suffixed forms.
+		if (
+			0 === strpos( $path, '/.well-known/oauth-authorization-server' ) ||
+			0 === strpos( $path, '/.well-known/openid-configuration' )
+		) {
 			$this->send_json( $this->authorization_server_metadata() );
 		}
 		if ( 0 === strpos( $path, '/.well-known/oauth-protected-resource' ) ) {
@@ -86,7 +102,12 @@ final class Metadata {
 	 * Absolute URL Claude should fetch for protected-resource metadata.
 	 */
 	public function protected_resource_metadata_url(): string {
-		return home_url( '/.well-known/oauth-protected-resource' . Settings::resource_path() );
+		$suffix    = Settings::resource_path();
+		$home_path = Settings::home_path();
+		if ( '' !== $home_path && 0 === strpos( $suffix, $home_path . '/' ) ) {
+			$suffix = substr( $suffix, strlen( $home_path ) );
+		}
+		return home_url( '/.well-known/oauth-protected-resource' . $suffix );
 	}
 
 	/**

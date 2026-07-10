@@ -68,10 +68,13 @@ final class Authorize {
 			$this->redirect_error( $redirect_uri, 'invalid_request', 'PKCE with S256 is required', $params['state'] );
 		}
 
-		$resource = '' !== $params['resource'] ? $params['resource'] : Settings::resource_url();
-		if ( $resource !== Settings::resource_url() ) {
+		// Compare leniently (trailing slash, ?rest_route= form) but always bind
+		// the canonical resource URL into the grant so the token audience is stable.
+		$requested = '' !== $params['resource'] ? $params['resource'] : Settings::resource_url();
+		if ( ! $this->is_our_resource( $requested ) ) {
 			$this->redirect_error( $redirect_uri, 'invalid_target', 'Unknown resource', $params['state'] );
 		}
+		$resource = Settings::resource_url();
 
 		// Approve (POST) → issue a single-use code bound to this user + PKCE.
 		if ( 'POST' === strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) && 'approve' === $params['arzo_consent'] ) {
@@ -159,6 +162,27 @@ final class Authorize {
 			'resource'              => esc_url_raw( $get( 'resource' ) ),
 			'arzo_consent'          => sanitize_text_field( $get( 'arzo_consent' ) ),
 		);
+	}
+
+	/**
+	 * Does the requested resource identify this site's MCP endpoint? Accepts the
+	 * canonical pretty-permalink URL, the "?rest_route=" form, and trailing-slash
+	 * variants — clients echo back whatever URL the user pasted.
+	 */
+	private function is_our_resource( string $requested ): bool {
+		$requested = untrailingslashit( $requested );
+		if ( untrailingslashit( Settings::resource_url() ) === $requested ) {
+			return true;
+		}
+		$query = (string) wp_parse_url( $requested, PHP_URL_QUERY );
+		if ( '' !== $query ) {
+			parse_str( $query, $query_vars );
+			$rest_route = isset( $query_vars['rest_route'] ) && is_string( $query_vars['rest_route'] ) ? $query_vars['rest_route'] : '';
+			if ( untrailingslashit( '/' . ltrim( $rest_route, '/' ) ) === '/' . Settings::server_route() ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function redirect_error( string $redirect_uri, string $error, string $description, string $state ): void {

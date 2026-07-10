@@ -153,7 +153,8 @@ final class Admin {
 			<p><?php echo esc_html__( 'These discovery URLs must each return JSON (not your homepage or a 404):', 'arzo-mcp-connect' ); ?></p>
 			<ul style="list-style:disc;margin-left:2em;">
 				<li><a href="<?php echo esc_url( home_url( '/.well-known/oauth-authorization-server' ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( home_url( '/.well-known/oauth-authorization-server' ) ); ?></a></li>
-				<li><a href="<?php echo esc_url( home_url( '/.well-known/oauth-protected-resource' . Settings::resource_path() ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( home_url( '/.well-known/oauth-protected-resource' . Settings::resource_path() ) ); ?></a></li>
+				<?php $prm_url = ( new Metadata() )->protected_resource_metadata_url(); ?>
+				<li><a href="<?php echo esc_url( $prm_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $prm_url ); ?></a></li>
 			</ul>
 
 			<h2><?php echo esc_html__( 'Status', 'arzo-mcp-connect' ); ?></h2>

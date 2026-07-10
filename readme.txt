@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,14 @@ No. You log in on your own site; Claude only receives an OAuth access token boun
 Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
 
 == Changelog ==
+
+= 1.0.3 =
+* Fixed a fatal error ("Call to a member function on null") on sites where another plugin checks the current user during plugins_loaded — token/resource URLs are now built without rest_url(), which is unsafe that early.
+* Fixed OAuth discovery returning the 404 page on subdirectory installs (example.com/blog): the .well-known interceptor now strips the install path prefix before matching.
+* Well-known matching now also tolerates "/index.php" permalinks and serves /.well-known/openid-configuration for clients that try OIDC discovery.
+* Bearer authentication now recognises MCP requests addressed via "?rest_route=" (plain permalinks) and no longer matches unrelated requests on plain-permalink sites.
+* The authorize endpoint accepts trailing-slash and ?rest_route= variants of the resource URL instead of failing with invalid_target.
+* JWT verification now rejects tokens whose header does not declare HS256.
 
 = 1.0.1 =
 * Registration endpoint reads parameters from any content type (more robust DCR).

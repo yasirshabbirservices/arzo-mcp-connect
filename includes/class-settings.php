@@ -58,9 +58,15 @@ final class Settings {
 	/**
 	 * Absolute URL of the MCP resource — the value pasted into Claude and the
 	 * audience bound into access tokens.
+	 *
+	 * Built from home_url() + rest_get_url_prefix() instead of rest_url() on
+	 * purpose: this runs inside `determine_current_user`, which other plugins can
+	 * trigger during `plugins_loaded`, before the global $wp_rewrite object that
+	 * rest_url() depends on exists (calling rest_url() there fatals). It also
+	 * keeps the token audience stable across permalink-structure changes.
 	 */
 	public static function resource_url(): string {
-		return rest_url( self::server_route() );
+		return home_url( '/' . rest_get_url_prefix() . '/' . self::server_route() );
 	}
 
 	/**
@@ -69,6 +75,15 @@ final class Settings {
 	public static function resource_path(): string {
 		$path = wp_parse_url( self::resource_url(), PHP_URL_PATH );
 		return is_string( $path ) ? $path : '';
+	}
+
+	/**
+	 * Path prefix of the WordPress install (e.g. "/blog" for subdirectory
+	 * installs), without a trailing slash. Empty string for root installs.
+	 */
+	public static function home_path(): string {
+		$path = wp_parse_url( home_url(), PHP_URL_PATH );
+		return is_string( $path ) ? untrailingslashit( $path ) : '';
 	}
 
 	/**

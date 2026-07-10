@@ -98,14 +98,40 @@ final class Bearer_Auth {
 
 	/**
 	 * Is the current request targeting the MCP resource path?
+	 *
+	 * Must not touch rest_url()/$wp_rewrite: `determine_current_user` can fire
+	 * during `plugins_loaded`, before rewrites are initialized.
 	 */
 	private function is_mcp_request(): bool {
 		if ( empty( $_SERVER['REQUEST_URI'] ) ) {
 			return false;
 		}
-		$path     = (string) wp_parse_url( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH );
+		$request_uri = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		$path        = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+
+		// Pretty permalinks: match the REST path, tolerating "/index.php" installs.
 		$resource = Settings::resource_path();
-		return '' !== $resource && 0 === strpos( $path, $resource );
+		if ( '' !== $resource && 0 === strpos( $path, $resource ) ) {
+			return true;
+		}
+		$home_path = Settings::home_path();
+		$index_form = $home_path . '/index.php' . substr( $resource, strlen( $home_path ) );
+		if ( '' !== $resource && 0 === strpos( $path, $index_form ) ) {
+			return true;
+		}
+
+		// Plain permalinks: the REST API is addressed via "?rest_route=/...".
+		$query = (string) wp_parse_url( $request_uri, PHP_URL_QUERY );
+		if ( '' !== $query ) {
+			parse_str( $query, $query_vars );
+			$rest_route = isset( $query_vars['rest_route'] ) && is_string( $query_vars['rest_route'] )
+				? $query_vars['rest_route']
+				: '';
+			if ( '' !== $rest_route && 0 === strpos( '/' . ltrim( $rest_route, '/' ), '/' . Settings::server_route() ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

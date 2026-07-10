@@ -51,6 +51,11 @@ final class JWT {
 		}
 		list( $header_b64, $payload_b64, $signature_b64 ) = $parts;
 
+		$header = json_decode( Settings::base64url_decode( $header_b64 ), true );
+		if ( ! is_array( $header ) || 'HS256' !== ( $header['alg'] ?? '' ) ) {
+			return null;
+		}
+
 		$expected  = hash_hmac( 'sha256', $header_b64 . '.' . $payload_b64, $key, true );
 		$signature = Settings::base64url_decode( $signature_b64 );
 		if ( '' === $signature || ! hash_equals( $expected, $signature ) ) {
