@@ -135,24 +135,10 @@ final class Bearer_Auth {
 	}
 
 	/**
-	 * Extract a bearer token from the Authorization header (with common
-	 * server-variable fallbacks for hosts that strip it).
+	 * Extract a bearer token from the Authorization header.
 	 */
 	private function bearer_token(): string {
-		$header = '';
-		if ( ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
-			$header = (string) wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] );
-		} elseif ( ! empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
-			$header = (string) wp_unslash( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] );
-		} elseif ( function_exists( 'getallheaders' ) ) {
-			$headers = getallheaders();
-			foreach ( (array) $headers as $name => $value ) {
-				if ( 'authorization' === strtolower( (string) $name ) ) {
-					$header = (string) $value;
-					break;
-				}
-			}
-		}
+		$header = self::authorization_header()['value'];
 		if ( '' === $header ) {
 			return '';
 		}
@@ -160,5 +146,43 @@ final class Bearer_Auth {
 			return trim( $matches[1] );
 		}
 		return '';
+	}
+
+	/**
+	 * The raw Authorization header and where it was found (with common
+	 * server-variable fallbacks for hosts that strip it). Also used by the
+	 * diagnostics endpoint to report whether the header survives the server.
+	 *
+	 * @return array{value:string,source:string}
+	 */
+	public static function authorization_header(): array {
+		if ( ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+			return array(
+				'value'  => (string) wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ),
+				'source' => 'server',
+			);
+		}
+		if ( ! empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
+			return array(
+				'value'  => (string) wp_unslash( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ),
+				'source' => 'redirect',
+			);
+		}
+		foreach ( array( 'getallheaders', 'apache_request_headers' ) as $fn ) {
+			if ( function_exists( $fn ) ) {
+				foreach ( (array) $fn() as $name => $value ) {
+					if ( 'authorization' === strtolower( (string) $name ) && '' !== (string) $value ) {
+						return array(
+							'value'  => (string) $value,
+							'source' => $fn,
+						);
+					}
+				}
+			}
+		}
+		return array(
+			'value'  => '',
+			'source' => 'none',
+		);
 	}
 }

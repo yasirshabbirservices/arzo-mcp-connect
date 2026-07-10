@@ -164,6 +164,39 @@ final class Admin {
 					<?php echo $active ? esc_html__( 'active', 'arzo-mcp-connect' ) : esc_html__( 'not detected', 'arzo-mcp-connect' ); ?>
 				</strong>
 			</p>
+			<p>
+				<?php echo esc_html__( 'Authorization header:', 'arzo-mcp-connect' ); ?>
+				<strong id="arzo-mcp-auth-check"><?php echo esc_html__( 'checking…', 'arzo-mcp-connect' ); ?></strong>
+			</p>
+			<p class="description" id="arzo-mcp-auth-fix" style="display:none;">
+				<?php
+				echo wp_kses_post(
+					__( 'Your server strips the <code>Authorization</code> header, so Claude cannot authenticate even after a successful connection. The plugin tried to fix this via <code>.htaccess</code> automatically; if this stays red, add this line to the top of your site&#8217;s root <code>.htaccess</code>: <code>SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</code> (on Nginx, ensure <code>fastcgi_pass_header Authorization;</code>).', 'arzo-mcp-connect' )
+				);
+				?>
+			</p>
+			<script>
+			( function () {
+				var el = document.getElementById( 'arzo-mcp-auth-check' );
+				var fix = document.getElementById( 'arzo-mcp-auth-fix' );
+				fetch( <?php echo wp_json_encode( rest_url( 'arzo-mcp/v1/diagnostics' ) ); ?>, {
+					headers: { Authorization: 'Bearer arzo-mcp-diagnostic-probe' },
+					credentials: 'omit'
+				} ).then( function ( r ) { return r.json(); } ).then( function ( d ) {
+					if ( d && d.authorization_header_received ) {
+						el.textContent = <?php echo wp_json_encode( __( 'reaches WordPress ✓', 'arzo-mcp-connect' ) ); ?> + ' (' + d.authorization_header_source + ')';
+						el.style.color = '#008a20';
+					} else {
+						el.textContent = <?php echo wp_json_encode( __( 'stripped by the server ✗', 'arzo-mcp-connect' ) ); ?>;
+						el.style.color = '#b32d2e';
+						fix.style.display = 'block';
+					}
+				} ).catch( function () {
+					el.textContent = <?php echo wp_json_encode( __( 'check failed (REST unreachable)', 'arzo-mcp-connect' ) ); ?>;
+					el.style.color = '#b32d2e';
+				} );
+			} )();
+			</script>
 
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="arzo_mcp_save_settings" />

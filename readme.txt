@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,13 @@ No. You log in on your own site; Claude only receives an OAuth access token boun
 Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
 
 == Changelog ==
+
+= 1.0.4 =
+* Fixed "Authorization failed" after a successful consent on hosts that strip the Authorization header (common on Apache/LiteSpeed FastCGI): the plugin now installs .htaccess pass-through rules automatically on activation and update.
+* New public diagnostics endpoint (/wp-json/arzo-mcp/v1/diagnostics) reporting whether the Authorization header reaches WordPress — no header contents are ever echoed.
+* The settings page now live-tests the Authorization header and shows the manual .htaccess/Nginx fix when the server strips it.
+* Bearer token extraction gained an apache_request_headers() fallback.
+* Uninstall removes the .htaccess block and version option.
 
 = 1.0.3 =
 * Fixed a fatal error ("Call to a member function on null") on sites where another plugin checks the current user during plugins_loaded — token/resource URLs are now built without rest_url(), which is unsafe that early.

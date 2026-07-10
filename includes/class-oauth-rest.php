@@ -52,6 +52,35 @@ final class OAuth_REST {
 				'permission_callback' => '__return_true',
 			)
 		);
+		register_rest_route(
+			'arzo-mcp/v1',
+			'/diagnostics',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'handle_diagnostics' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
+
+	/**
+	 * Connectivity self-test: reports whether an Authorization header sent to
+	 * this endpoint survived the web server. Never echoes the header value.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_diagnostics(): \WP_REST_Response {
+		$auth     = Bearer_Auth::authorization_header();
+		$response = new \WP_REST_Response(
+			array(
+				'version'                       => ARZO_MCP_VERSION,
+				'authorization_header_received' => '' !== $auth['value'],
+				'authorization_header_source'   => $auth['source'],
+			),
+			200
+		);
+		$response->header( 'Cache-Control', 'no-store' );
+		return $response;
 	}
 
 	/**
