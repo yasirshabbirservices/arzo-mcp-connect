@@ -168,58 +168,116 @@
 }
 
 /* ------------------------------------------------------------------ *
- * 3. Hero / masthead
+ * 3. Brand bar / masthead
  * ------------------------------------------------------------------ */
-.arzo-hero {
+.arzo-brandbar {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--arzo-space-md);
 	margin-block-end: var(--arzo-space-lg);
+	padding: var(--arzo-space-sm) var(--arzo-space-md);
+	background: var(--arzo-sheen), hsl(var(--arzo-card) / 0.6);
+	border: 1px solid hsl(var(--arzo-border) / 0.5);
+	border-radius: var(--arzo-radius-lg);
+	backdrop-filter: blur(24px);
+	-webkit-backdrop-filter: blur(24px);
 }
 
-.arzo-hero__brand {
+.arzo-brandbar__id {
+	display: flex;
+	align-items: center;
+	gap: var(--arzo-space-sm);
+}
+
+.arzo-brandbar__logo {
+	inline-size: clamp(2.5rem, 2rem + 1.5vw, 3rem);
+	block-size: clamp(2.5rem, 2rem + 1.5vw, 3rem);
+	border-radius: var(--arzo-radius-sm);
+	object-fit: contain;
+	box-shadow: var(--arzo-glow-sm);
+}
+
+.arzo-brandbar__name-wrap {
 	display: flex;
 	flex-direction: column;
-	gap: var(--arzo-space-3xs);
+	gap: 0.1rem;
 }
 
-.arzo-hero__eyebrow {
+.arzo-brandbar__eyebrow {
 	font-size: var(--arzo-text-sm);
 	font-weight: 600;
-	letter-spacing: 0.14em;
+	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: hsl(var(--arzo-primary));
 }
 
-.arzo-hero__title {
+.arzo-brandbar__name {
+	margin: 0;
+	padding: 0;
 	font-family: var(--arzo-font-display);
 	font-weight: 800;
-	font-size: var(--arzo-text-2xl);
+	font-size: var(--arzo-text-xl);
 	line-height: 1.05;
 	letter-spacing: -0.01em;
+	color: hsl(var(--arzo-fg));
 }
 
-.arzo-hero__title .arzo-grad {
+.arzo-grad {
 	background: linear-gradient(135deg, hsl(var(--arzo-primary)), hsl(var(--arzo-accent)));
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
 }
 
-.arzo-hero__version {
+.arzo-brandbar__by {
+	font-size: var(--arzo-text-sm);
+	font-weight: 500;
+	color: hsl(var(--arzo-muted-fg));
+	text-decoration: none;
+	width: fit-content;
+}
+
+.arzo-brandbar__by:hover {
+	color: hsl(var(--arzo-primary));
+}
+
+.arzo-brandbar__meta {
+	display: flex;
+	align-items: center;
+	gap: var(--arzo-space-md);
+}
+
+.arzo-brandbar__ver {
+	display: inline-flex;
+	align-items: center;
+	padding: var(--arzo-space-3xs) var(--arzo-space-sm);
+	font-size: var(--arzo-text-sm);
+	font-weight: 700;
+	color: hsl(var(--arzo-primary));
+	background: hsl(var(--arzo-primary) / 0.1);
+	border: 1px solid hsl(var(--arzo-primary) / 0.25);
+	border-radius: var(--arzo-radius-full);
+}
+
+.arzo-brandbar__gh {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--arzo-space-2xs);
-	padding: var(--arzo-space-2xs) var(--arzo-space-sm);
 	font-size: var(--arzo-text-sm);
 	font-weight: 500;
 	color: hsl(var(--arzo-fg));
-	background: hsl(var(--arzo-card) / 0.6);
-	border: 1px solid hsl(var(--arzo-border) / 0.6);
-	border-radius: var(--arzo-radius-full);
-	backdrop-filter: blur(12px);
+	text-decoration: none;
+}
+
+.arzo-brandbar__gh:hover {
+	color: hsl(var(--arzo-primary));
+}
+
+.arzo-brandbar__gh-icon {
+	inline-size: 1rem;
+	block-size: 1rem;
 }
 
 /* ------------------------------------------------------------------ *
@@ -767,7 +825,7 @@
  * 13. Responsive
  * ------------------------------------------------------------------ */
 @media (max-width: 782px) {
-	.arzo-hero {
+	.arzo-brandbar {
 		align-items: flex-start;
 	}
 

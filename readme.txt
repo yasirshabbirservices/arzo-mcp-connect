@@ -60,7 +60,7 @@ If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was 
 == Changelog ==
 
 = 1.1.0 =
-* Redesigned the settings page in a dark emerald design language: glassmorphism cards, live status badges, one-click copy for the connector URL and Client ID, and colour-coded diagnostic events.
+* Redesigned the settings page in a dark emerald design language: a branded header (logo, “by Yasir Shabbir”, version, GitHub), glassmorphism cards, live status badges, one-click copy for the connector URL and Client ID, and colour-coded diagnostic events.
 * Added built-in, tabbed setup guides for Cloudflare, LiteSpeed Cache, WP Rocket / W3TC / WP Super Cache, Nginx / Apache, and ModSecurity — so the CDN/WAF/cache exclusions that keep the flow working are copy-paste simple.
 * Styling is fully tokenised (CSS variables + clamp/calc, BEM) and scoped to the plugin screen; assets are enqueued only there.
 * First tagged release.

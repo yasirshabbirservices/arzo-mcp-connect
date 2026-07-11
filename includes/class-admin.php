@@ -181,12 +181,22 @@ final class Admin {
 		$prm_url   = ( new Metadata() )->protected_resource_metadata_url();
 		?>
 		<div class="wrap arzo-page">
-			<header class="arzo-hero">
-				<div class="arzo-hero__brand">
-					<span class="arzo-hero__eyebrow"><?php echo esc_html__( 'WordPress × Claude', 'arzo-mcp-connect' ); ?></span>
-					<h1 class="arzo-hero__title"><?php echo esc_html__( 'Arzo MCP', 'arzo-mcp-connect' ); ?> <span class="arzo-grad"><?php echo esc_html__( 'Connect', 'arzo-mcp-connect' ); ?></span></h1>
+			<header class="arzo-brandbar">
+				<div class="arzo-brandbar__id">
+					<img class="arzo-brandbar__logo" src="<?php echo esc_url( ARZO_MCP_URL . 'assets/arzo-mcp-icon.svg' ); ?>" alt="Arzo MCP Connect" width="44" height="44" />
+					<div class="arzo-brandbar__name-wrap">
+						<span class="arzo-brandbar__eyebrow"><?php echo esc_html__( 'WordPress × Claude', 'arzo-mcp-connect' ); ?></span>
+						<h1 class="arzo-brandbar__name"><?php echo esc_html__( 'Arzo MCP', 'arzo-mcp-connect' ); ?> <span class="arzo-grad"><?php echo esc_html__( 'Connect', 'arzo-mcp-connect' ); ?></span></h1>
+						<a class="arzo-brandbar__by" href="https://yasirshabbir.com" target="_blank" rel="noopener"><?php echo esc_html__( 'by Yasir Shabbir', 'arzo-mcp-connect' ); ?></a>
+					</div>
 				</div>
-				<span class="arzo-hero__version">v<?php echo esc_html( ARZO_MCP_VERSION ); ?></span>
+				<div class="arzo-brandbar__meta">
+					<span class="arzo-brandbar__ver">v<?php echo esc_html( ARZO_MCP_VERSION ); ?></span>
+					<a class="arzo-brandbar__gh" href="https://github.com/yasirshabbirservices/arzo-mcp-connect" target="_blank" rel="noopener">
+						<svg class="arzo-brandbar__gh-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+						<?php echo esc_html__( 'GitHub', 'arzo-mcp-connect' ); ?>
+					</a>
+				</div>
 			</header>
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
