@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-00D68F.svg">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-00D68F.svg">
   <img alt="WordPress" src="https://img.shields.io/badge/WordPress-6.8%2B-21759b.svg">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg">
@@ -50,7 +50,7 @@ Because authorization uses your normal WordPress login, **Claude acts with exact
 |---|---|
 | WordPress | 6.8+ |
 | PHP | 7.4+ |
-| Dependency | [MCP Adapter](https://github.com/WordPress/mcp-adapter) plugin (and, on WP 6.8, the Abilities API plugin; built into core on 6.9+) |
+| Dependency | [MCP Adapter](https://github.com/WordPress/mcp-adapter) plugin (and, on WP 6.8, the Abilities API plugin; built into core on 7.0+) |
 | Permalinks | "Pretty" permalinks enabled (Settings → Permalinks → **Post name**) |
 | Reachability | Site reachable over **HTTPS** from the public internet |
 

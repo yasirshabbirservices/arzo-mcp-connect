@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Arzo MCP Connect
- * Plugin URI:        https://github.com/yasirshabbirservices/arzo-remote-mcp
+ * Plugin URI:        https://github.com/yasirshabbirservices/arzo-mcp-connect
  * Description:       Connect Claude.ai (and other Remote MCP clients) directly to this WordPress site. Adds an OAuth 2.1 authorization server (Dynamic Client Registration + PKCE) on top of the WordPress MCP Adapter, so you can add your site as a Claude Custom Connector with no external gateway or local software.
  * Version:           1.2.0
  * Requires at least: 6.8

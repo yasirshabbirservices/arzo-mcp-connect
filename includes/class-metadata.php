@@ -79,7 +79,7 @@ final class Metadata {
 			'grant_types_supported'                 => array( 'authorization_code', 'refresh_token' ),
 			'token_endpoint_auth_methods_supported' => array( 'none' ),
 			'code_challenge_methods_supported'      => array( 'S256' ),
-			'service_documentation'                 => 'https://github.com/yasirshabbirservices/arzo-remote-mcp',
+			'service_documentation'                 => 'https://github.com/yasirshabbirservices/arzo-mcp-connect',
 		);
 	}
 
