@@ -258,11 +258,44 @@ final class Admin {
 		<?php if ( empty( $entries ) ) : ?>
 			<p><em><?php echo esc_html__( 'No events recorded yet.', 'arzo-mcp-connect' ); ?></em></p>
 		<?php else : ?>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:.5em 0;">
+			<?php $this->maybe_waf_warning( $entries ); ?>
+			<?php
+			// Plain-text export for the Copy button.
+			$plain = '';
+			foreach ( $entries as $entry ) {
+				$plain .= (string) ( $entry['time'] ?? '' ) . '  ' . (string) ( $entry['event'] ?? '' ) . '  '
+					. wp_json_encode( $entry['context'] ?? array() ) . '  '
+					. trim( (string) ( $entry['ip'] ?? '' ) . ' · ' . (string) ( $entry['ua'] ?? '' ), ' ·' ) . "\n";
+			}
+			?>
+			<p style="margin:.5em 0;">
+				<button type="button" class="button" id="arzo-mcp-copy-log"><?php echo esc_html__( 'Copy log', 'arzo-mcp-connect' ); ?></button>
+				<a href="#" class="button" id="arzo-mcp-clear-log-link"
+					onclick="event.preventDefault();document.getElementById('arzo-mcp-clear-log-form').submit();"><?php echo esc_html__( 'Clear log', 'arzo-mcp-connect' ); ?></a>
+			</p>
+			<form method="post" id="arzo-mcp-clear-log-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none;">
 				<input type="hidden" name="action" value="arzo_mcp_clear_log" />
 				<?php wp_nonce_field( 'arzo_mcp_clear_log' ); ?>
-				<?php submit_button( __( 'Clear log', 'arzo-mcp-connect' ), 'secondary', 'submit', false ); ?>
 			</form>
+			<textarea id="arzo-mcp-log-text" readonly style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true"><?php echo esc_textarea( $plain ); ?></textarea>
+			<script>
+			( function () {
+				var btn = document.getElementById( 'arzo-mcp-copy-log' );
+				btn && btn.addEventListener( 'click', function () {
+					var ta = document.getElementById( 'arzo-mcp-log-text' );
+					var done = function () {
+						var t = btn.textContent;
+						btn.textContent = <?php echo wp_json_encode( __( 'Copied ✓', 'arzo-mcp-connect' ) ); ?>;
+						setTimeout( function () { btn.textContent = t; }, 1500 );
+					};
+					if ( navigator.clipboard && navigator.clipboard.writeText ) {
+						navigator.clipboard.writeText( ta.value ).then( done, function () { ta.style.position = 'static'; ta.style.left = 'auto'; ta.select(); document.execCommand( 'copy' ); done(); } );
+					} else {
+						ta.style.position = 'static'; ta.style.left = 'auto'; ta.select(); document.execCommand( 'copy' ); done();
+					}
+				} );
+			} )();
+			</script>
 			<table class="widefat striped" style="max-width:960px;">
 				<thead><tr>
 					<th><?php echo esc_html__( 'Time', 'arzo-mcp-connect' ); ?></th>
@@ -280,6 +313,43 @@ final class Admin {
 				</tbody>
 			</table>
 		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * If the log shows a token was issued but no authenticated MCP request ever
+	 * reached WordPress afterward, a firewall/WAF (Cloudflare, ModSecurity,
+	 * LiteSpeed) is almost certainly blocking Claude's bearer-token requests
+	 * upstream. Surface the fix.
+	 *
+	 * @param array<int,array<string,mixed>> $entries Newest-first log entries.
+	 */
+	private function maybe_waf_warning( array $entries ): void {
+		$issued   = false;
+		$verified = false;
+		// $entries is newest-first; walk oldest→newest to see what followed issuance.
+		foreach ( array_reverse( $entries ) as $entry ) {
+			$event = (string) ( $entry['event'] ?? '' );
+			if ( 'token_issued' === $event ) {
+				$issued   = true;
+				$verified = false; // reset: look for a verify after THIS issuance.
+			}
+			if ( $issued && in_array( $event, array( 'verify_ok', 'verify_fail', 'mcp_authorized', 'challenge_issued', 'mcp_short_circuited' ), true ) ) {
+				$verified = true;
+			}
+		}
+		if ( ! $issued || $verified ) {
+			return;
+		}
+		?>
+		<div class="notice notice-error" style="max-width:960px;">
+			<p><strong><?php echo esc_html__( 'A firewall is blocking Claude after login.', 'arzo-mcp-connect' ); ?></strong></p>
+			<p><?php echo esc_html__( 'The log shows an access token was issued successfully, but Claude’s follow-up request to the MCP endpoint never reached WordPress. That means a WAF / firewall in front of your site (Cloudflare, or ModSecurity/LiteSpeed on your host) is blocking requests that carry the bearer token — often with a 403 “Your request was blocked.” page. This is a hosting/CDN setting, not a plugin problem, and must be fixed there:', 'arzo-mcp-connect' ); ?></p>
+			<ul style="list-style:disc;margin-left:2em;">
+				<li><?php echo wp_kses_post( __( '<strong>Cloudflare:</strong> Security → WAF → Custom rules → create a rule that <em>Skips</em> Managed Rules, Bot Fight Mode, and Rate Limiting when <code>URI Path</code> starts with <code>/wp-json/mcp/</code>, <code>/wp-json/arzo-mcp/</code>, or <code>/.well-known/</code>.', 'arzo-mcp-connect' ) ); ?></li>
+				<li><?php echo wp_kses_post( __( '<strong>ModSecurity / LiteSpeed (host):</strong> ask your host to disable ModSecurity for the <code>/wp-json/mcp/</code> path, or whitelist requests to it. The OWASP rule set frequently flags JWT bearer tokens as false positives.', 'arzo-mcp-connect' ) ); ?></li>
+			</ul>
+		</div>
 		<?php
 	}
 

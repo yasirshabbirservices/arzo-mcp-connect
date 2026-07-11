@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,7 +53,14 @@ No. You log in on your own site; Claude only receives an OAuth access token boun
 = My host strips the Authorization header. =
 Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
 
+= Login succeeds but Claude says "Authorization failed". =
+If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was issued but no request follows it, a firewall in front of WordPress is blocking Claude's bearer-token requests — often a 403 "Your request was blocked." On Cloudflare, add a WAF custom rule that Skips Managed Rules, Bot Fight Mode and Rate Limiting for URI paths starting with `/wp-json/mcp/`, `/wp-json/arzo-mcp/`, and `/.well-known/`. On hosts with ModSecurity/LiteSpeed, ask support to disable ModSecurity for `/wp-json/mcp/` (the OWASP rule set often false-positives on JWTs). This is a CDN/hosting setting, not a plugin bug.
+
 == Changelog ==
+
+= 1.0.7 =
+* Added a "Copy log" button to the diagnostic log for easy sharing.
+* The settings page now detects the "token issued but authenticated request never arrived" signature and shows a targeted warning: a WAF/firewall (Cloudflare, or ModSecurity/LiteSpeed on the host) is blocking Claude's bearer-token requests upstream, with the exact Cloudflare and ModSecurity fixes. This is a hosting/CDN configuration issue, not a plugin bug.
 
 = 1.0.6 =
 * Diagnostic log now also records what happens on the authenticated MCP request itself: whether it was short-circuited by another plugin (maintenance mode, security/WAF, cache), whether a 401 challenge was issued and if the bearer header was present, whether the token verified, and whether the request URL failed to match the configured resource path. This isolates failures that occur after a successful token exchange.
