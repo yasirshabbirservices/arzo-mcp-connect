@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,13 @@ Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTH
 If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was issued but no request follows it, a firewall in front of WordPress is blocking Claude's bearer-token requests — often a 403 "Your request was blocked." On Cloudflare, add a WAF custom rule that Skips Managed Rules, Bot Fight Mode and Rate Limiting for URI paths starting with `/wp-json/mcp/`, `/wp-json/arzo-mcp/`, and `/.well-known/`. On hosts with ModSecurity/LiteSpeed, ask support to disable ModSecurity for `/wp-json/mcp/` (the OWASP rule set often false-positives on JWTs). This is a CDN/hosting setting, not a plugin bug.
 
 == Changelog ==
+
+= 1.1.1 =
+* The settings page now fully takes over the WordPress admin canvas (dark emerald), removing the white background.
+* Fixed card titles that could render dark-on-dark (invisible) because of wp-admin heading styles.
+* Inputs and checkboxes are now themed consistently instead of falling back to default white wp-admin controls.
+* Added inline SVG icons across titles, buttons, tabs, links and notices for faster scanning; centered the logo glyph.
+* Tightened spacing/rhythm and dropped heavy backdrop-blur for snappier rendering.
 
 = 1.1.0 =
 * Redesigned the settings page in a dark emerald design language: a branded header (logo, “by Yasir Shabbir”, version, GitHub), glassmorphism cards, live status badges, one-click copy for the connector URL and Client ID, and colour-coded diagnostic events.

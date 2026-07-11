@@ -201,6 +201,7 @@ final class Admin {
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="arzo-notice arzo-notice--ok" role="status">
+					<?php echo Icons::svg( 'check-circle' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<div class="arzo-notice__body"><strong><?php echo esc_html__( 'Saved.', 'arzo-mcp-connect' ); ?></strong></div>
 				</div>
 			<?php endif; ?>
@@ -210,18 +211,18 @@ final class Admin {
 			<div class="arzo-u-grid">
 				<section class="arzo-card">
 					<div class="arzo-card__head">
-						<h2 class="arzo-card__title"><?php echo esc_html__( 'Connector URL', 'arzo-mcp-connect' ); ?></h2>
+						<h2 class="arzo-card__title"><?php echo Icons::svg( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static inline SVG. ?><?php echo esc_html__( 'Connector URL', 'arzo-mcp-connect' ); ?></h2>
 					</div>
 					<p class="arzo-card__desc"><?php echo esc_html__( 'In Claude: Settings → Connectors → Add custom connector, and paste this URL.', 'arzo-mcp-connect' ); ?></p>
 					<div class="arzo-field">
 						<input id="arzo-connector-url" class="arzo-field__input" type="text" readonly value="<?php echo esc_attr( $connector ); ?>" onclick="this.select()" />
-						<button type="button" class="arzo-btn arzo-btn--primary" data-arzo-copy="#arzo-connector-url"><?php echo esc_html__( 'Copy', 'arzo-mcp-connect' ); ?></button>
+						<button type="button" class="arzo-btn arzo-btn--primary" data-arzo-copy="#arzo-connector-url"><?php echo Icons::svg( 'copy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Copy', 'arzo-mcp-connect' ); ?></button>
 					</div>
 				</section>
 
 				<section class="arzo-card">
 					<div class="arzo-card__head">
-						<h2 class="arzo-card__title"><?php echo esc_html__( 'Status', 'arzo-mcp-connect' ); ?></h2>
+						<h2 class="arzo-card__title"><?php echo Icons::svg( 'activity' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Status', 'arzo-mcp-connect' ); ?></h2>
 					</div>
 					<div class="arzo-status">
 						<div class="arzo-status__item">
@@ -250,32 +251,32 @@ final class Admin {
 
 			<section class="arzo-card">
 				<div class="arzo-card__head">
-					<h2 class="arzo-card__title"><?php echo esc_html__( 'Manual Client ID', 'arzo-mcp-connect' ); ?></h2>
+					<h2 class="arzo-card__title"><?php echo Icons::svg( 'key' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Manual Client ID', 'arzo-mcp-connect' ); ?></h2>
 				</div>
 				<p class="arzo-card__desc"><?php echo esc_html__( 'Only needed if Claude shows “Couldn’t register with the sign-in service”. Generate an ID here and paste it into Claude’s “OAuth Client ID” field, then connect again.', 'arzo-mcp-connect' ); ?></p>
 				<?php if ( '' !== $manual ) : ?>
 					<div class="arzo-field">
 						<input id="arzo-client-id" class="arzo-field__input" type="text" readonly value="<?php echo esc_attr( $manual ); ?>" onclick="this.select()" />
-						<button type="button" class="arzo-btn arzo-btn--ghost" data-arzo-copy="#arzo-client-id"><?php echo esc_html__( 'Copy', 'arzo-mcp-connect' ); ?></button>
+						<button type="button" class="arzo-btn arzo-btn--ghost" data-arzo-copy="#arzo-client-id"><?php echo Icons::svg( 'copy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Copy', 'arzo-mcp-connect' ); ?></button>
 					</div>
 				<?php endif; ?>
 				<form class="arzo-actions" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="arzo_mcp_create_client" />
 					<?php wp_nonce_field( 'arzo_mcp_create_client' ); ?>
 					<button type="submit" class="arzo-btn arzo-btn--ghost">
-						<?php echo '' !== $manual ? esc_html__( 'Regenerate Client ID', 'arzo-mcp-connect' ) : esc_html__( 'Generate Client ID', 'arzo-mcp-connect' ); ?>
+						<?php echo Icons::svg( 'refresh' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo '' !== $manual ? esc_html__( 'Regenerate Client ID', 'arzo-mcp-connect' ) : esc_html__( 'Generate Client ID', 'arzo-mcp-connect' ); ?>
 					</button>
 				</form>
 			</section>
 
 			<section class="arzo-card">
 				<div class="arzo-card__head">
-					<h2 class="arzo-card__title"><?php echo esc_html__( 'Discovery check', 'arzo-mcp-connect' ); ?></h2>
+					<h2 class="arzo-card__title"><?php echo Icons::svg( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Discovery check', 'arzo-mcp-connect' ); ?></h2>
 				</div>
 				<p class="arzo-card__desc"><?php echo esc_html__( 'Each link must return JSON — not your homepage or a 404. If either fails, enable “pretty” permalinks (Settings → Permalinks → Post name).', 'arzo-mcp-connect' ); ?></p>
 				<div class="arzo-u-stack" style="--arzo-stack-gap:var(--arzo-space-2xs);">
-					<a class="arzo-u-mono" href="<?php echo esc_url( $as_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $as_url ); ?></a>
-					<a class="arzo-u-mono" href="<?php echo esc_url( $prm_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $prm_url ); ?></a>
+					<a class="arzo-link-row" href="<?php echo esc_url( $as_url ); ?>" target="_blank" rel="noopener"><?php echo Icons::svg( 'external', 'arzo-icon--sm' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span class="arzo-u-mono"><?php echo esc_html( $as_url ); ?></span></a>
+					<a class="arzo-link-row" href="<?php echo esc_url( $prm_url ); ?>" target="_blank" rel="noopener"><?php echo Icons::svg( 'external', 'arzo-icon--sm' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span class="arzo-u-mono"><?php echo esc_html( $prm_url ); ?></span></a>
 				</div>
 			</section>
 
@@ -283,7 +284,7 @@ final class Admin {
 
 			<section class="arzo-card">
 				<div class="arzo-card__head">
-					<h2 class="arzo-card__title"><?php echo esc_html__( 'Advanced', 'arzo-mcp-connect' ); ?></h2>
+					<h2 class="arzo-card__title"><?php echo Icons::svg( 'sliders' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Advanced', 'arzo-mcp-connect' ); ?></h2>
 				</div>
 				<form class="arzo-u-stack" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="--arzo-stack-gap:var(--arzo-space-md);">
 					<input type="hidden" name="action" value="arzo_mcp_save_settings" />
@@ -306,7 +307,7 @@ final class Admin {
 					</label>
 
 					<div class="arzo-actions">
-						<button type="submit" class="arzo-btn arzo-btn--primary"><?php echo esc_html__( 'Save changes', 'arzo-mcp-connect' ); ?></button>
+						<button type="submit" class="arzo-btn arzo-btn--primary"><?php echo Icons::svg( 'save' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Save changes', 'arzo-mcp-connect' ); ?></button>
 					</div>
 				</form>
 			</section>
@@ -323,16 +324,16 @@ final class Admin {
 	private function render_setup(): void {
 		$paths = '/wp-json/mcp/  ·  /wp-json/arzo-mcp/  ·  /.well-known/';
 		$tabs  = array(
-			'cloudflare' => __( 'Cloudflare', 'arzo-mcp-connect' ),
-			'litespeed'  => __( 'LiteSpeed', 'arzo-mcp-connect' ),
-			'caches'     => __( 'Other caches', 'arzo-mcp-connect' ),
-			'servers'    => __( 'Nginx / Apache', 'arzo-mcp-connect' ),
-			'modsec'     => __( 'ModSecurity', 'arzo-mcp-connect' ),
+			'cloudflare' => array( __( 'Cloudflare', 'arzo-mcp-connect' ), 'cloud' ),
+			'litespeed'  => array( __( 'LiteSpeed', 'arzo-mcp-connect' ), 'zap' ),
+			'caches'     => array( __( 'Other caches', 'arzo-mcp-connect' ), 'database' ),
+			'servers'    => array( __( 'Nginx / Apache', 'arzo-mcp-connect' ), 'server' ),
+			'modsec'     => array( __( 'ModSecurity', 'arzo-mcp-connect' ), 'shield-alert' ),
 		);
 		?>
 		<section class="arzo-card">
 			<div class="arzo-card__head">
-				<h2 class="arzo-card__title"><?php echo esc_html__( 'Setup &amp; troubleshooting', 'arzo-mcp-connect' ); ?></h2>
+				<h2 class="arzo-card__title"><?php echo Icons::svg( 'lifebuoy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Setup &amp; troubleshooting', 'arzo-mcp-connect' ); ?></h2>
 			</div>
 			<p class="arzo-card__desc">
 				<?php echo esc_html__( 'If login succeeds but Claude still says “Authorization failed”, a CDN, cache, or firewall is interfering with these paths. Exclude them from caching and firewall rules:', 'arzo-mcp-connect' ); ?>
@@ -342,13 +343,13 @@ final class Admin {
 			<div class="arzo-tabs__list" role="tablist" data-arzo-tabs aria-label="<?php echo esc_attr__( 'Setup guides', 'arzo-mcp-connect' ); ?>">
 				<?php
 				$first = true;
-				foreach ( $tabs as $key => $label ) :
+				foreach ( $tabs as $key => $tab ) :
 					?>
 					<button type="button" class="arzo-tab" role="tab"
 						id="arzo-tab-<?php echo esc_attr( $key ); ?>"
 						aria-controls="arzo-panel-<?php echo esc_attr( $key ); ?>"
 						aria-selected="<?php echo $first ? 'true' : 'false'; ?>"
-						tabindex="<?php echo $first ? '0' : '-1'; ?>"><?php echo esc_html( $label ); ?></button>
+						tabindex="<?php echo $first ? '0' : '-1'; ?>"><?php echo Icons::svg( $tab[1], 'arzo-icon--sm' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $tab[0] ); ?></span></button>
 					<?php
 					$first = false;
 				endforeach;
@@ -410,11 +411,11 @@ final class Admin {
 		?>
 		<section class="arzo-card">
 			<div class="arzo-card__head">
-				<h2 class="arzo-card__title"><?php echo esc_html__( 'Diagnostic log', 'arzo-mcp-connect' ); ?></h2>
+				<h2 class="arzo-card__title"><?php echo Icons::svg( 'terminal' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Diagnostic log', 'arzo-mcp-connect' ); ?></h2>
 				<?php if ( ! empty( $entries ) ) : ?>
 					<div class="arzo-u-row">
-						<button type="button" class="arzo-btn arzo-btn--ghost arzo-btn--sm" data-arzo-copy="#arzo-log-text"><?php echo esc_html__( 'Copy log', 'arzo-mcp-connect' ); ?></button>
-						<button type="submit" form="arzo-clear-log" class="arzo-btn arzo-btn--danger arzo-btn--sm"><?php echo esc_html__( 'Clear', 'arzo-mcp-connect' ); ?></button>
+						<button type="button" class="arzo-btn arzo-btn--ghost arzo-btn--sm" data-arzo-copy="#arzo-log-text"><?php echo Icons::svg( 'copy', 'arzo-icon--sm' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Copy log', 'arzo-mcp-connect' ); ?></button>
+						<button type="submit" form="arzo-clear-log" class="arzo-btn arzo-btn--danger arzo-btn--sm"><?php echo Icons::svg( 'trash', 'arzo-icon--sm' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo esc_html__( 'Clear', 'arzo-mcp-connect' ); ?></button>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -515,6 +516,7 @@ final class Admin {
 		}
 		?>
 		<div class="arzo-notice arzo-notice--error" role="alert">
+			<?php echo Icons::svg( 'alert' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<div class="arzo-notice__body">
 				<span class="arzo-notice__title"><?php echo esc_html__( 'A firewall is blocking Claude after login', 'arzo-mcp-connect' ); ?></span>
 				<p><?php echo esc_html__( 'An access token was issued successfully, but Claude’s follow-up request never reached WordPress — a WAF/firewall (Cloudflare, or ModSecurity/LiteSpeed on your host) is blocking the bearer-token request, often with a 403 “Your request was blocked.” This is a hosting/CDN setting. See the Cloudflare and ModSecurity tabs above; the short version:', 'arzo-mcp-connect' ); ?></p>

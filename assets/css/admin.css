@@ -12,7 +12,7 @@
 /* ------------------------------------------------------------------ *
  * 1. Design tokens (single source of truth)
  * ------------------------------------------------------------------ */
-.arzo-page {
+:root {
 	/* Color — HSL triplets, consumed via hsl(var(--token) / <alpha>). */
 	--arzo-bg: 160 25% 5%;
 	--arzo-bg-2: 160 22% 7%;
@@ -47,7 +47,6 @@
 	--arzo-font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
 	--arzo-font-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 	--arzo-font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, monospace;
-	--arzo-step: 1.2;
 	--arzo-text-sm: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
 	--arzo-text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
 	--arzo-text-lg: clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem);
@@ -64,36 +63,74 @@
 	--arzo-dur: 0.3s;
 
 	/* Layout. */
-	--arzo-measure: 68rem;
-	--arzo-gap: var(--arzo-space-md);
+	--arzo-measure: 72rem;
+	--arzo-gap: var(--arzo-space-lg);
+}
 
+/* ------------------------------------------------------------------ *
+ * 1b. Take over the whole wp-admin content area (dark canvas)
+ * This stylesheet is enqueued only on our screen, so these overrides
+ * never touch any other admin page.
+ * ------------------------------------------------------------------ */
+#wpcontent,
+#wpbody,
+#wpbody-content,
+.wrap.arzo-page {
+	background: transparent;
+}
+
+#wpwrap {
+	background:
+		radial-gradient(60% 50% at 100% 0%, hsl(var(--arzo-primary) / 0.08), transparent 55%),
+		radial-gradient(55% 45% at 0% 0%, hsl(var(--arzo-primary) / 0.05), transparent 50%),
+		linear-gradient(180deg, hsl(var(--arzo-bg-2)), hsl(var(--arzo-bg)));
+}
+
+#wpbody-content {
+	padding-block-end: 0;
+}
+
+/* The admin footer sits on the dark canvas now. */
+#wpfooter {
+	color: hsl(var(--arzo-muted-fg));
+}
+
+#wpfooter a {
+	color: hsl(var(--arzo-muted-fg));
+}
+
+#wpfooter a:hover {
+	color: hsl(var(--arzo-primary));
+}
+
+/* ------------------------------------------------------------------ *
+ * 1c. Page canvas
+ * ------------------------------------------------------------------ */
+.arzo-page {
 	position: relative;
-	max-width: var(--arzo-measure);
-	margin-block: var(--arzo-space-md);
-	margin-inline: 0;
-	padding: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+	display: flex;
+	flex-direction: column;
+	gap: var(--arzo-gap);
+	max-inline-size: var(--arzo-measure);
+	margin-inline: auto;
+	margin-block: 0;
+	padding-inline: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+	padding-block: clamp(1.5rem, 1rem + 2vw, 3rem);
 	font-family: var(--arzo-font-body);
 	font-size: var(--arzo-text-base);
 	line-height: 1.6;
 	color: hsl(var(--arzo-fg));
-	background:
-		radial-gradient(120% 80% at 15% -10%, hsl(var(--arzo-primary) / 0.1), transparent 60%),
-		linear-gradient(180deg, hsl(var(--arzo-bg-2)), hsl(var(--arzo-bg)));
-	border: 1px solid hsl(var(--arzo-border) / 0.6);
-	border-radius: var(--arzo-radius-lg);
-	box-shadow: var(--arzo-glow);
-	overflow: hidden;
 }
 
 /* Decorative floating blob — depth without shadow. */
 .arzo-page::before {
 	content: "";
 	position: absolute;
-	inset-block-start: calc(var(--arzo-space-xl) * -2);
-	inset-inline-end: calc(var(--arzo-space-xl) * -1.5);
-	inline-size: clamp(18rem, 40vw, 32rem);
-	block-size: clamp(18rem, 40vw, 32rem);
-	background: hsl(var(--arzo-primary) / 0.16);
+	inset-block-start: calc(var(--arzo-space-xl) * -1);
+	inset-inline-end: calc(var(--arzo-space-xl) * -1);
+	inline-size: clamp(16rem, 34vw, 28rem);
+	block-size: clamp(16rem, 34vw, 28rem);
+	background: hsl(var(--arzo-primary) / 0.1);
 	filter: blur(clamp(4rem, 8vw, 6rem));
 	border-radius: var(--arzo-radius-full);
 	pointer-events: none;
@@ -114,6 +151,16 @@
 
 .arzo-page :where(h1, h2, h3, p, ul, ol, figure) {
 	margin: 0;
+	padding: 0;
+}
+
+/* Explicit, high-specificity colours so wp-admin's `.wrap h1/h2 { color:#1d2327 }`
+ * (which has real specificity, unlike :where) can't win and hide our titles.
+ * Only headings are forced; spans/labels keep their component colours. */
+.wrap.arzo-page h1,
+.wrap.arzo-page h2,
+.wrap.arzo-page h3 {
+	color: hsl(var(--arzo-fg));
 }
 
 .arzo-page :where(a) {
@@ -123,6 +170,83 @@
 
 .arzo-page :where(a:hover) {
 	color: hsl(var(--arzo-accent));
+}
+
+/* ------------------------------------------------------------------ *
+ * 1d. Neutralise wp-admin form controls inside our page
+ * wp-admin styles `input[type="text"]`, `input[type="checkbox"]`, etc.
+ * with type selectors that out-specify our single-class rules, so scope
+ * ours under .arzo-page (two classes / a class + descendant) to win.
+ * ------------------------------------------------------------------ */
+.arzo-page input[type="text"],
+.arzo-page input[type="url"],
+.arzo-page input[type="search"],
+.arzo-page textarea {
+	color: hsl(var(--arzo-fg));
+	background: hsl(var(--arzo-bg) / 0.6);
+	border: 1px solid hsl(var(--arzo-border) / 0.7);
+	border-radius: var(--arzo-radius-sm);
+	box-shadow: none;
+	line-height: 1.5;
+}
+
+.arzo-page input[type="text"]:focus,
+.arzo-page input[type="url"]:focus,
+.arzo-page input[type="search"]:focus,
+.arzo-page textarea:focus {
+	border-color: hsl(var(--arzo-primary) / 0.6);
+	box-shadow: 0 0 0 3px hsl(var(--arzo-primary) / 0.18);
+	outline: none;
+}
+
+.arzo-page input[type="text"]::placeholder,
+.arzo-page textarea::placeholder {
+	color: hsl(var(--arzo-muted-fg));
+}
+
+.arzo-page input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
+	inline-size: 1.25rem;
+	block-size: 1.25rem;
+	margin: 0;
+	background: hsl(var(--arzo-bg) / 0.6);
+	border: 1px solid hsl(var(--arzo-border));
+	border-radius: 0.35rem;
+	cursor: pointer;
+	display: inline-grid;
+	place-content: center;
+	transition: background-color var(--arzo-dur) var(--arzo-ease),
+		border-color var(--arzo-dur) var(--arzo-ease);
+}
+
+.arzo-page input[type="checkbox"]::before {
+	content: "";
+	inline-size: 0.7rem;
+	block-size: 0.7rem;
+	transform: scale(0);
+	transform-origin: center;
+	transition: transform var(--arzo-dur) var(--arzo-ease);
+	background: hsl(var(--arzo-bg));
+	clip-path: polygon(14% 44%, 0 65%, 43% 100%, 100% 16%, 80% 0, 39% 68%);
+}
+
+.arzo-page input[type="checkbox"]:checked {
+	background: hsl(var(--arzo-primary));
+	border-color: hsl(var(--arzo-primary));
+}
+
+.arzo-page input[type="checkbox"]:checked::before {
+	transform: scale(1);
+}
+
+.arzo-page input[type="checkbox"]:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px hsl(var(--arzo-primary) / 0.3);
+}
+
+.arzo-page input[type="checkbox"]:checked::after {
+	content: none;
 }
 
 /* ------------------------------------------------------------------ *
@@ -176,13 +300,10 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--arzo-space-md);
-	margin-block-end: var(--arzo-space-lg);
 	padding: var(--arzo-space-sm) var(--arzo-space-md);
-	background: var(--arzo-sheen), hsl(var(--arzo-card) / 0.6);
+	background: var(--arzo-sheen), hsl(var(--arzo-card) / 0.7);
 	border: 1px solid hsl(var(--arzo-border) / 0.5);
 	border-radius: var(--arzo-radius-lg);
-	backdrop-filter: blur(24px);
-	-webkit-backdrop-filter: blur(24px);
 }
 
 .arzo-brandbar__id {
@@ -288,15 +409,9 @@
 	flex-direction: column;
 	gap: var(--arzo-space-sm);
 	padding: var(--arzo-space-lg);
-	background: var(--arzo-sheen), hsl(var(--arzo-card) / 0.6);
+	background: var(--arzo-sheen), hsl(var(--arzo-card) / 0.72);
 	border: 1px solid hsl(var(--arzo-border) / 0.5);
 	border-radius: var(--arzo-radius-lg);
-	backdrop-filter: blur(24px);
-	-webkit-backdrop-filter: blur(24px);
-}
-
-.arzo-card + .arzo-card {
-	margin-block-start: var(--arzo-gap);
 }
 
 .arzo-card--flush {
@@ -312,10 +427,49 @@
 }
 
 .arzo-card__title {
+	display: flex;
+	align-items: center;
+	gap: var(--arzo-space-xs);
 	font-family: var(--arzo-font-display);
 	font-weight: 700;
 	font-size: var(--arzo-text-xl);
 	letter-spacing: -0.01em;
+}
+
+.arzo-card__title .arzo-icon {
+	color: hsl(var(--arzo-primary));
+}
+
+/* ------------------------------------------------------------------ *
+ * Icons
+ * ------------------------------------------------------------------ */
+.arzo-icon {
+	inline-size: 1.15em;
+	block-size: 1.15em;
+	flex: 0 0 auto;
+	vertical-align: -0.15em;
+}
+
+.arzo-icon--sm {
+	inline-size: 1em;
+	block-size: 1em;
+}
+
+.arzo-link-row {
+	display: flex;
+	align-items: center;
+	gap: var(--arzo-space-2xs);
+	color: hsl(var(--arzo-primary));
+	text-decoration: none;
+}
+
+.arzo-link-row:hover {
+	color: hsl(var(--arzo-accent));
+}
+
+.arzo-link-row .arzo-u-mono {
+	word-break: break-all;
+	font-size: var(--arzo-text-sm);
 }
 
 .arzo-card__desc {
@@ -583,6 +737,9 @@
 }
 
 .arzo-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--arzo-space-2xs);
 	appearance: none;
 	padding: var(--arzo-space-2xs) var(--arzo-space-md);
 	font-family: var(--arzo-font-body);
@@ -703,6 +860,24 @@
 	gap: var(--arzo-space-2xs);
 	font-size: var(--arzo-text-sm);
 	line-height: 1.7;
+}
+
+.arzo-notice > .arzo-icon {
+	inline-size: 1.4rem;
+	block-size: 1.4rem;
+	margin-block-start: 0.1rem;
+}
+
+.arzo-notice--ok > .arzo-icon {
+	color: hsl(var(--arzo-success));
+}
+
+.arzo-notice--warn > .arzo-icon {
+	color: hsl(var(--arzo-warn));
+}
+
+.arzo-notice--error > .arzo-icon {
+	color: hsl(var(--arzo-destructive));
 }
 
 .arzo-notice__title {
