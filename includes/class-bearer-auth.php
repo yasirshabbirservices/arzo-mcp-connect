@@ -48,12 +48,23 @@ final class Bearer_Auth {
 		if ( ! empty( $user_id ) ) {
 			return $user_id;
 		}
+		$token = $this->bearer_token();
 		// Only honor our tokens on requests to the MCP resource path.
 		if ( ! $this->is_mcp_request() ) {
+			// A bearer token on a request we did NOT classify as MCP means our
+			// path matcher and the client's URL disagree — log it so we can see.
+			if ( '' !== $token ) {
+				Debug::log(
+					'auth_path_mismatch',
+					array(
+						'path'          => (string) wp_parse_url( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH ),
+						'resource_path' => Settings::resource_path(),
+					)
+				);
+			}
 			return $user_id;
 		}
-		$token = $this->bearer_token();
-		$auth  = self::authorization_header();
+		$auth = self::authorization_header();
 		if ( '' === $token ) {
 			Debug::log(
 				'mcp_no_token',
@@ -78,17 +89,39 @@ final class Bearer_Auth {
 	 */
 	public function maybe_challenge( $result, $server, $request ) {
 		unset( $server );
-		if ( null !== $result ) {
-			return $result;
-		}
 		$route  = (string) $request->get_route();
 		$prefix = '/' . trim( (string) strtok( Settings::server_route(), '/' ), '/' ) . '/';
-		if ( 0 !== strpos( $route, $prefix ) ) {
+		$on_mcp = 0 === strpos( $route, $prefix );
+
+		if ( null !== $result ) {
+			// Another plugin (maintenance mode, a security/WAF shim, a cache)
+			// already short-circuited this request. If it happened on the MCP
+			// route, that is very likely why authenticated calls never reach us.
+			if ( $on_mcp ) {
+				$status = $result instanceof \WP_REST_Response ? $result->get_status()
+					: ( is_wp_error( $result ) ? (string) $result->get_error_code() : 'unknown' );
+				Debug::log( 'mcp_short_circuited', array( 'route' => $route, 'result' => $status ) );
+			}
+			return $result;
+		}
+		if ( ! $on_mcp ) {
 			return $result;
 		}
 		if ( is_user_logged_in() ) {
+			Debug::log( 'mcp_authorized', array( 'route' => $route, 'user_id' => get_current_user_id() ) );
 			return $result;
 		}
+
+		$auth = self::authorization_header();
+		Debug::log(
+			'challenge_issued',
+			array(
+				'route'          => $route,
+				'header_present' => '' !== $auth['value'],
+				'header_source'  => $auth['source'],
+				'is_bearer'      => '' !== $this->bearer_token(),
+			)
+		);
 
 		$response = new \WP_REST_Response(
 			array(
@@ -101,7 +134,26 @@ final class Bearer_Auth {
 			'WWW-Authenticate',
 			'Bearer resource_metadata="' . esc_url_raw( $this->metadata->protected_resource_metadata_url() ) . '"'
 		);
+		// Never let a proxy or page cache (Cloudflare, LiteSpeed, Varnish) store
+		// this 401 for the MCP URL — a cached challenge would be replayed to the
+		// authenticated retry, so it would never reach PHP and the connection
+		// would fail even with a valid token.
+		self::no_cache_headers( $response );
 		return $response;
+	}
+
+	/**
+	 * Mark a REST response uncacheable across the common WordPress cache layers.
+	 *
+	 * @param \WP_REST_Response $response Response to annotate.
+	 */
+	private static function no_cache_headers( \WP_REST_Response $response ): void {
+		$response->header( 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0' );
+		$response->header( 'Pragma', 'no-cache' );
+		$response->header( 'X-LiteSpeed-Cache-Control', 'no-cache' );
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
 	}
 
 	/**
