@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,10 @@ Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTH
 If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was issued but no request follows it, a firewall in front of WordPress is blocking Claude's bearer-token requests — often a 403 "Your request was blocked." On Cloudflare, add a WAF custom rule that Skips Managed Rules, Bot Fight Mode and Rate Limiting for URI paths starting with `/wp-json/mcp/`, `/wp-json/arzo-mcp/`, and `/.well-known/`. On hosts with ModSecurity/LiteSpeed, ask support to disable ModSecurity for `/wp-json/mcp/` (the OWASP rule set often false-positives on JWTs). This is a CDN/hosting setting, not a plugin bug.
 
 == Changelog ==
+
+= 1.0.8 =
+* Diagnostic log now shows URLs with normal slashes instead of JSON-escaped "\/".
+* The settings-page Authorization self-test no longer records a spurious "auth_path_mismatch" event in the log (its probe token is ignored; only real JWTs on an unexpected path are logged now).
 
 = 1.0.7 =
 * Added a "Copy log" button to the diagnostic log for easy sharing.

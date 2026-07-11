@@ -264,7 +264,7 @@ final class Admin {
 			$plain = '';
 			foreach ( $entries as $entry ) {
 				$plain .= (string) ( $entry['time'] ?? '' ) . '  ' . (string) ( $entry['event'] ?? '' ) . '  '
-					. wp_json_encode( $entry['context'] ?? array() ) . '  '
+					. wp_json_encode( $entry['context'] ?? array(), JSON_UNESCAPED_SLASHES ) . '  '
 					. trim( (string) ( $entry['ip'] ?? '' ) . ' · ' . (string) ( $entry['ua'] ?? '' ), ' ·' ) . "\n";
 			}
 			?>
@@ -307,7 +307,7 @@ final class Admin {
 					<tr>
 						<td style="white-space:nowrap;"><?php echo esc_html( (string) ( $entry['time'] ?? '' ) ); ?></td>
 						<td><code><?php echo esc_html( (string) ( $entry['event'] ?? '' ) ); ?></code></td>
-						<td><code style="word-break:break-all;"><?php echo esc_html( wp_json_encode( $entry['context'] ?? array() ) ); ?></code><br /><small style="color:#787c82;"><?php echo esc_html( trim( (string) ( $entry['ip'] ?? '' ) . ' · ' . (string) ( $entry['ua'] ?? '' ), ' ·' ) ); ?></small></td>
+						<td><code style="word-break:break-all;"><?php echo esc_html( wp_json_encode( $entry['context'] ?? array(), JSON_UNESCAPED_SLASHES ) ); ?></code><br /><small style="color:#787c82;"><?php echo esc_html( trim( (string) ( $entry['ip'] ?? '' ) . ' · ' . (string) ( $entry['ua'] ?? '' ), ' ·' ) ); ?></small></td>
 					</tr>
 				<?php endforeach; ?>
 				</tbody>

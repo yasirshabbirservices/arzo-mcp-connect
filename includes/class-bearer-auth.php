@@ -51,9 +51,12 @@ final class Bearer_Auth {
 		$token = $this->bearer_token();
 		// Only honor our tokens on requests to the MCP resource path.
 		if ( ! $this->is_mcp_request() ) {
-			// A bearer token on a request we did NOT classify as MCP means our
+			// A JWT bearer token on a request we did NOT classify as MCP means our
 			// path matcher and the client's URL disagree — log it so we can see.
-			if ( '' !== $token ) {
+			// Ignore non-JWT tokens (a JWT has three dot-separated segments); this
+			// filters out our own settings-page diagnostics probe, which sends a
+			// plain, dot-free token to /wp-json/arzo-mcp/v1/diagnostics on purpose.
+			if ( '' !== $token && 2 === substr_count( $token, '.' ) ) {
 				Debug::log(
 					'auth_path_mismatch',
 					array(
