@@ -1,0 +1,7 @@
+# Build output / distributable archives
+/dist/
+*.zip
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
