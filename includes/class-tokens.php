@@ -93,15 +93,23 @@ final class Tokens {
 	public function verify( string $token, string $resource ): ?int {
 		$claims = JWT::decode( $token, Settings::signing_key() );
 		if ( null === $claims ) {
+			Debug::log( 'verify_fail', array( 'reason' => 'bad_signature_or_expired', 'token_fp' => Debug::fingerprint( $token ) ) );
 			return null;
 		}
 		if ( ( $claims['iss'] ?? '' ) !== Settings::issuer() ) {
+			Debug::log( 'verify_fail', array( 'reason' => 'iss_mismatch', 'token_iss' => (string) ( $claims['iss'] ?? '' ), 'expected_iss' => Settings::issuer() ) );
 			return null;
 		}
 		if ( ( $claims['aud'] ?? '' ) !== $resource ) {
+			Debug::log( 'verify_fail', array( 'reason' => 'aud_mismatch', 'token_aud' => (string) ( $claims['aud'] ?? '' ), 'expected_aud' => $resource ) );
 			return null;
 		}
 		$user_id = (int) ( $claims['sub'] ?? 0 );
-		return $user_id > 0 ? $user_id : null;
+		if ( $user_id > 0 ) {
+			Debug::log( 'verify_ok', array( 'user_id' => $user_id, 'aud' => $resource ) );
+			return $user_id;
+		}
+		Debug::log( 'verify_fail', array( 'reason' => 'no_subject' ) );
+		return null;
 	}
 }

@@ -12,6 +12,8 @@ delete_option( 'arzo_mcp_clients' );
 delete_option( 'arzo_mcp_server_route' );
 delete_option( 'arzo_mcp_manual_client_id' );
 delete_option( 'arzo_mcp_version' );
+delete_option( 'arzo_mcp_debug' );
+delete_option( 'arzo_mcp_debug_log' );
 
 // Remove the Authorization pass-through block the plugin added to .htaccess.
 require_once ABSPATH . 'wp-admin/includes/misc.php';

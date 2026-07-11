@@ -53,7 +53,15 @@ final class Bearer_Auth {
 			return $user_id;
 		}
 		$token = $this->bearer_token();
+		$auth  = self::authorization_header();
 		if ( '' === $token ) {
+			Debug::log(
+				'mcp_no_token',
+				array(
+					'header_source' => $auth['source'],
+					'header_present' => '' !== $auth['value'],
+				)
+			);
 			return $user_id;
 		}
 		$resolved = $this->tokens->verify( $token, Settings::resource_url() );

@@ -95,6 +95,17 @@ final class Authorize {
 				Settings::CODE_TTL
 			);
 
+			Debug::log(
+				'code_issued',
+				array(
+					'client_id' => $params['client_id'],
+					'user_id'   => (int) $user->ID,
+					'resource'  => $resource,
+					'code_fp'   => Debug::fingerprint( $code ),
+					'redirect'  => $redirect_uri,
+				)
+			);
+
 			$target = add_query_arg(
 				array_filter(
 					array(

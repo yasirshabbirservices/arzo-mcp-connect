@@ -24,7 +24,21 @@ final class Admin {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_post_arzo_mcp_save_settings', array( $this, 'save' ) );
 		add_action( 'admin_post_arzo_mcp_create_client', array( $this, 'create_client' ) );
+		add_action( 'admin_post_arzo_mcp_clear_log', array( $this, 'clear_log' ) );
 		add_action( 'admin_notices', array( $this, 'dependency_notice' ) );
+	}
+
+	/**
+	 * Clear the diagnostic log.
+	 */
+	public function clear_log(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'arzo-mcp-connect' ) );
+		}
+		check_admin_referer( 'arzo_mcp_clear_log' );
+		Debug::clear();
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'options-general.php?page=arzo-mcp-connect' ) ) );
+		exit;
 	}
 
 	/**
@@ -112,6 +126,7 @@ final class Admin {
 		if ( isset( $_POST['arzo_mcp_regenerate'] ) ) {
 			Settings::regenerate_key();
 		}
+		update_option( Debug::OPTION_ENABLED, isset( $_POST['arzo_mcp_debug'] ) ? '1' : '', false );
 
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'options-general.php?page=arzo-mcp-connect' ) ) );
 		exit;
@@ -215,10 +230,56 @@ final class Admin {
 							<label><input type="checkbox" name="arzo_mcp_regenerate" value="1" /> <?php echo esc_html__( 'Regenerate (invalidates all existing tokens; connected clients must re-authenticate)', 'arzo-mcp-connect' ); ?></label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php echo esc_html__( 'Diagnostic log', 'arzo-mcp-connect' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="arzo_mcp_debug" value="1" <?php checked( Debug::enabled() ); ?> /> <?php echo esc_html__( 'Record OAuth / bearer flow events (no tokens or secrets are stored). Turn on, retry the Claude connection, then read the log below.', 'arzo-mcp-connect' ); ?></label>
+						</td>
+					</tr>
 				</table>
 				<?php submit_button( __( 'Save Changes', 'arzo-mcp-connect' ) ); ?>
 			</form>
+
+			<?php $this->render_log(); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render the captured diagnostic events (newest first).
+	 */
+	private function render_log(): void {
+		$entries = Debug::entries();
+		?>
+		<h2><?php echo esc_html__( 'Diagnostic log', 'arzo-mcp-connect' ); ?></h2>
+		<?php if ( ! Debug::enabled() ) : ?>
+			<p class="description"><?php echo esc_html__( 'Logging is off. Enable it above, Save, retry the Claude connection, then refresh this page.', 'arzo-mcp-connect' ); ?></p>
+		<?php endif; ?>
+		<?php if ( empty( $entries ) ) : ?>
+			<p><em><?php echo esc_html__( 'No events recorded yet.', 'arzo-mcp-connect' ); ?></em></p>
+		<?php else : ?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:.5em 0;">
+				<input type="hidden" name="action" value="arzo_mcp_clear_log" />
+				<?php wp_nonce_field( 'arzo_mcp_clear_log' ); ?>
+				<?php submit_button( __( 'Clear log', 'arzo-mcp-connect' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<table class="widefat striped" style="max-width:960px;">
+				<thead><tr>
+					<th><?php echo esc_html__( 'Time', 'arzo-mcp-connect' ); ?></th>
+					<th><?php echo esc_html__( 'Event', 'arzo-mcp-connect' ); ?></th>
+					<th><?php echo esc_html__( 'Details', 'arzo-mcp-connect' ); ?></th>
+				</tr></thead>
+				<tbody>
+				<?php foreach ( $entries as $entry ) : ?>
+					<tr>
+						<td style="white-space:nowrap;"><?php echo esc_html( (string) ( $entry['time'] ?? '' ) ); ?></td>
+						<td><code><?php echo esc_html( (string) ( $entry['event'] ?? '' ) ); ?></code></td>
+						<td><code style="word-break:break-all;"><?php echo esc_html( wp_json_encode( $entry['context'] ?? array() ) ); ?></code><br /><small style="color:#787c82;"><?php echo esc_html( trim( (string) ( $entry['ip'] ?? '' ) . ' · ' . (string) ( $entry['ua'] ?? '' ), ' ·' ) ); ?></small></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
 		<?php
 	}
 

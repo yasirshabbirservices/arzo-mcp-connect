@@ -122,6 +122,14 @@ final class OAuth_REST {
 			'created_at'                 => time(),
 		);
 		$this->store->save_client( $client );
+		Debug::log(
+			'register',
+			array(
+				'client_id'     => $client_id,
+				'redirect_uris' => $redirect_uris,
+				'client_name'   => $client_name,
+			)
+		);
 
 		$response = new \WP_REST_Response(
 			array(
@@ -147,7 +155,18 @@ final class OAuth_REST {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_token( \WP_REST_Request $request ): \WP_REST_Response {
-		$grant_type = (string) $request->get_param( 'grant_type' );
+		$grant_type   = (string) $request->get_param( 'grant_type' );
+		$content_type = $request->get_content_type();
+		Debug::log(
+			'token_request',
+			array(
+				'grant_type'   => '' !== $grant_type ? $grant_type : '(missing)',
+				'content_type' => is_array( $content_type ) && isset( $content_type['value'] ) ? $content_type['value'] : '',
+				'has_code'     => '' !== (string) $request->get_param( 'code' ),
+				'has_verifier' => '' !== (string) $request->get_param( 'code_verifier' ),
+				'client_id'    => (string) $request->get_param( 'client_id' ),
+			)
+		);
 
 		if ( 'authorization_code' === $grant_type ) {
 			return $this->grant_authorization_code( $request );
@@ -170,15 +189,19 @@ final class OAuth_REST {
 
 		$code = $this->store->consume_code( $code_value );
 		if ( null === $code ) {
+			Debug::log( 'token_fail', array( 'reason' => 'code_invalid_or_expired', 'code_fp' => Debug::fingerprint( $code_value ) ) );
 			return $this->error( 'invalid_grant', 'Authorization code is invalid or expired', 400 );
 		}
 		if ( (string) $code['client_id'] !== $client_id ) {
+			Debug::log( 'token_fail', array( 'reason' => 'client_mismatch', 'code_client' => (string) $code['client_id'], 'sent_client' => $client_id ) );
 			return $this->error( 'invalid_grant', 'Authorization code was issued to another client', 400 );
 		}
 		if ( '' !== $redirect_uri && (string) $code['redirect_uri'] !== $redirect_uri ) {
+			Debug::log( 'token_fail', array( 'reason' => 'redirect_uri_mismatch', 'code_uri' => (string) $code['redirect_uri'], 'sent_uri' => $redirect_uri ) );
 			return $this->error( 'invalid_grant', 'redirect_uri mismatch', 400 );
 		}
 		if ( ! PKCE::verify_s256( $code_verifier, (string) $code['code_challenge'] ) ) {
+			Debug::log( 'token_fail', array( 'reason' => 'pkce_failed', 'verifier_len' => strlen( $code_verifier ) ) );
 			return $this->error( 'invalid_grant', 'PKCE verification failed', 400 );
 		}
 
@@ -187,6 +210,14 @@ final class OAuth_REST {
 			$client_id,
 			(string) $code['scope'],
 			(string) $code['resource']
+		);
+		Debug::log(
+			'token_issued',
+			array(
+				'user_id'  => (int) $code['user_id'],
+				'aud'      => (string) $code['resource'],
+				'access_fp' => Debug::fingerprint( (string) $token_set['access_token'] ),
+			)
 		);
 		return $this->token_response( $token_set );
 	}

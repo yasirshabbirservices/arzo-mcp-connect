@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,9 @@ No. You log in on your own site; Claude only receives an OAuth access token boun
 Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1`
 
 == Changelog ==
+
+= 1.0.5 =
+* Added an opt-in diagnostic log (Settings → Arzo MCP Connect) that records each step of the OAuth and bearer-auth flow — registration, code issuance, token exchange, and token verification — so a failing Claude connection can be pinpointed without server access. No tokens, codes, verifiers, or keys are ever stored; only outcomes, reasons, and short fingerprints.
 
 = 1.0.4 =
 * Fixed "Authorization failed" after a successful consent on hosts that strip the Authorization header (common on Apache/LiteSpeed FastCGI): the plugin now installs .htaccess pass-through rules automatically on activation and update.
