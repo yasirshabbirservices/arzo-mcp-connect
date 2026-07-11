@@ -28,7 +28,26 @@ final class Admin {
 		add_action( 'admin_post_arzo_mcp_save_settings', array( $this, 'save' ) );
 		add_action( 'admin_post_arzo_mcp_create_client', array( $this, 'create_client' ) );
 		add_action( 'admin_post_arzo_mcp_clear_log', array( $this, 'clear_log' ) );
+		add_action( 'admin_post_arzo_mcp_install_adapter', array( $this, 'install_adapter' ) );
 		add_action( 'admin_notices', array( $this, 'dependency_notice' ) );
+	}
+
+	/**
+	 * One-click install (if needed) and activate the MCP Adapter dependency.
+	 */
+	public function install_adapter(): void {
+		if ( ! current_user_can( 'install_plugins' ) ) {
+			wp_die( esc_html__( 'You do not have permission to install plugins.', 'arzo-mcp-connect' ) );
+		}
+		check_admin_referer( 'arzo_mcp_install_adapter' );
+
+		$result = Adapter::install_and_activate();
+		$args   = is_wp_error( $result )
+			? array( 'adapter' => 'error', 'adapter_msg' => rawurlencode( $result->get_error_message() ) )
+			: array( 'adapter' => 'installed' );
+
+		wp_safe_redirect( add_query_arg( $args, admin_url( 'options-general.php?page=arzo-mcp-connect' ) ) );
+		exit;
 	}
 
 	/**
@@ -141,11 +160,44 @@ final class Admin {
 			echo '</p></div>';
 		}
 
-		if ( ! self::adapter_active() ) {
-			echo '<div class="notice notice-warning"><p>';
-			echo esc_html__( 'Arzo MCP Connect: the WordPress “MCP Adapter” plugin is not active. Install and activate it so your abilities are exposed as MCP tools.', 'arzo-mcp-connect' );
-			echo '</p></div>';
+		// On our own settings screen the Status card already shows the adapter
+		// state and its install/activate button, so don't repeat it here.
+		if ( $screen && 'settings_page_arzo-mcp-connect' === $screen->id ) {
+			return;
 		}
+
+		$state = Adapter::state();
+		if ( Adapter::STATE_ACTIVE === $state ) {
+			return;
+		}
+
+		$missing = Adapter::STATE_MISSING === $state;
+		echo '<div class="notice notice-warning"><p>';
+		echo $missing
+			? esc_html__( 'Arzo MCP Connect needs the WordPress “MCP Adapter” plugin, which exposes your abilities as MCP tools. It isn’t installed yet.', 'arzo-mcp-connect' )
+			: esc_html__( 'Arzo MCP Connect needs the WordPress “MCP Adapter” plugin. It’s installed but not active.', 'arzo-mcp-connect' );
+		echo '</p><p>';
+		if ( current_user_can( 'install_plugins' ) ) {
+			$label = $missing ? __( 'Install &amp; activate MCP Adapter', 'arzo-mcp-connect' ) : __( 'Activate MCP Adapter', 'arzo-mcp-connect' );
+			printf(
+				'<a href="%1$s" class="button button-primary">%2$s</a>',
+				esc_url( $this->install_adapter_url() ),
+				wp_kses( $label, array() )
+			);
+		} else {
+			echo esc_html__( 'Ask a site administrator to install it.', 'arzo-mcp-connect' );
+		}
+		echo '</p></div>';
+	}
+
+	/**
+	 * A nonce-signed admin-post URL that installs/activates the MCP Adapter.
+	 */
+	private function install_adapter_url(): string {
+		return wp_nonce_url(
+			admin_url( 'admin-post.php?action=arzo_mcp_install_adapter' ),
+			'arzo_mcp_install_adapter'
+		);
 	}
 
 	public function save(): void {
@@ -173,7 +225,7 @@ final class Admin {
 		}
 		$connector = Settings::resource_url();
 		$route     = Settings::server_route();
-		$active    = self::adapter_active();
+		$state     = Adapter::state();
 		$manual    = get_option( self::OPTION_MANUAL_CLIENT );
 		$manual    = is_string( $manual ) ? $manual : '';
 		$entries   = Debug::entries();
@@ -206,6 +258,31 @@ final class Admin {
 				</div>
 			<?php endif; ?>
 
+			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only status flag set by our own redirect. ?>
+			<?php if ( isset( $_GET['adapter'] ) && 'installed' === $_GET['adapter'] ) : ?>
+				<div class="arzo-notice arzo-notice--ok" role="status">
+					<?php echo Icons::svg( 'check-circle' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<div class="arzo-notice__body"><strong><?php echo esc_html__( 'MCP Adapter installed and activated.', 'arzo-mcp-connect' ); ?></strong></div>
+				</div>
+			<?php elseif ( isset( $_GET['adapter'] ) && 'error' === $_GET['adapter'] ) : ?>
+				<div class="arzo-notice arzo-notice--error" role="alert">
+					<?php echo Icons::svg( 'alert' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<div class="arzo-notice__body">
+						<span class="arzo-notice__title"><?php echo esc_html__( 'MCP Adapter could not be installed', 'arzo-mcp-connect' ); ?></span>
+						<?php if ( isset( $_GET['adapter_msg'] ) ) : ?>
+							<p><?php echo esc_html( rawurldecode( sanitize_text_field( wp_unslash( $_GET['adapter_msg'] ) ) ) ); ?></p>
+						<?php endif; ?>
+						<p><?php
+							printf(
+								/* translators: %s: link to the MCP Adapter releases page. */
+								wp_kses( __( 'You can install it manually from the <a href="%s" target="_blank" rel="noopener">MCP Adapter releases page</a>.', 'arzo-mcp-connect' ), array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) ),
+								esc_url( Adapter::RELEASES_URL )
+							);
+						?></p>
+					</div>
+				</div>
+			<?php endif; ?>
+
 			<?php $this->maybe_waf_warning( $entries ); ?>
 
 			<div class="arzo-u-grid">
@@ -227,10 +304,12 @@ final class Admin {
 					<div class="arzo-status">
 						<div class="arzo-status__item">
 							<span class="arzo-status__label"><?php echo esc_html__( 'MCP Adapter plugin', 'arzo-mcp-connect' ); ?></span>
-							<?php if ( $active ) : ?>
+							<?php if ( Adapter::STATE_ACTIVE === $state ) : ?>
 								<span class="arzo-badge arzo-badge--ok"><?php echo esc_html__( 'active', 'arzo-mcp-connect' ); ?></span>
+							<?php elseif ( Adapter::STATE_INACTIVE === $state ) : ?>
+								<span class="arzo-badge arzo-badge--warn"><?php echo esc_html__( 'inactive', 'arzo-mcp-connect' ); ?></span>
 							<?php else : ?>
-								<span class="arzo-badge arzo-badge--bad"><?php echo esc_html__( 'not detected', 'arzo-mcp-connect' ); ?></span>
+								<span class="arzo-badge arzo-badge--bad"><?php echo esc_html__( 'not installed', 'arzo-mcp-connect' ); ?></span>
 							<?php endif; ?>
 						</div>
 						<div class="arzo-status__item">
@@ -238,6 +317,23 @@ final class Admin {
 							<span id="arzo-auth-check" class="arzo-badge arzo-badge--idle"><?php echo esc_html__( 'checking…', 'arzo-mcp-connect' ); ?></span>
 						</div>
 					</div>
+					<?php if ( Adapter::STATE_ACTIVE !== $state && current_user_can( 'install_plugins' ) ) : ?>
+						<div class="arzo-actions">
+							<a class="arzo-btn arzo-btn--primary" href="<?php echo esc_url( $this->install_adapter_url() ); ?>">
+								<?php echo Icons::svg( Adapter::STATE_MISSING === $state ? 'download' : 'power' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo Adapter::STATE_MISSING === $state ? esc_html__( 'Install & activate adapter', 'arzo-mcp-connect' ) : esc_html__( 'Activate adapter', 'arzo-mcp-connect' ); ?>
+							</a>
+						</div>
+						<p class="arzo-hint">
+							<?php
+							printf(
+								/* translators: %s: MCP Adapter GitHub URL. */
+								esc_html__( 'Installs the official MCP Adapter from %s.', 'arzo-mcp-connect' ),
+								'github.com/WordPress/mcp-adapter'
+							);
+							?>
+						</p>
+					<?php endif; ?>
 					<p id="arzo-auth-fix" class="arzo-hint" hidden>
 						<?php
 						echo wp_kses(
@@ -531,8 +627,10 @@ final class Admin {
 
 	/**
 	 * Detect the WordPress MCP Adapter (it defines WP_MCP_VERSION).
+	 *
+	 * @deprecated Use Adapter::is_active(). Kept as a thin alias for compatibility.
 	 */
 	public static function adapter_active(): bool {
-		return defined( 'WP_MCP_VERSION' );
+		return Adapter::is_active();
 	}
 }

@@ -37,6 +37,7 @@ Because authorization uses your normal WordPress login, **Claude acts with exact
 - **OAuth 2.1** — Authorization Code + **PKCE (S256)**, **Dynamic Client Registration** (RFC 7591), rotating refresh tokens.
 - **Discovery** — RFC 8414 authorization-server metadata and RFC 9728 protected-resource metadata, served even when WordPress wouldn't normally route `/.well-known/` (including subdirectory installs).
 - **Audience-bound HS256 tokens** (RFC 8707) — a token minted for this site can't be replayed elsewhere.
+- **One-click dependency setup** — install & activate the required MCP Adapter straight from its official GitHub release, with a live not-installed / inactive / active status.
 - **Designed settings page** — one-click connector URL, live status checks (MCP Adapter + `Authorization` header), and a manual Client ID fallback.
 - **Built-in setup guides** — copy-paste fixes for Cloudflare, LiteSpeed Cache, WP Rocket / W3TC, Nginx / Apache, and ModSecurity, right on the settings screen.
 - **Privacy-safe diagnostic log** — opt-in, records the OAuth/bearer flow with **no tokens or secrets stored** (only outcomes, reasons, and short fingerprints), with copy & clear.
@@ -55,9 +56,9 @@ Because authorization uses your normal WordPress login, **Claude acts with exact
 
 ## Installation
 
-1. Install and activate the official **MCP Adapter** plugin.
-2. Install and activate **Arzo MCP Connect** (Plugins → Add New → Upload Plugin).
-3. Go to **Settings → Arzo MCP Connect** and copy the **Connector URL**.
+1. Install and activate **Arzo MCP Connect** (Plugins → Add New → Upload Plugin).
+2. Go to **Settings → Arzo MCP Connect**. If the **MCP Adapter** dependency isn't active, click **Install & activate adapter** — the plugin fetches the [official release](https://github.com/WordPress/mcp-adapter/releases) and activates it for you (or install it manually if you prefer).
+3. Copy the **Connector URL**.
 4. In Claude: **Settings → Connectors → Add custom connector**, paste the URL, and click **Connect**.
 5. Sign in with your WordPress account and approve. Claude can now use your site's MCP tools.
 
@@ -147,6 +148,8 @@ includes/
   class-oauth-store.php     Clients (option) + codes/refresh (transients)
   class-bearer-auth.php     Bearer → WP identity + 401 discovery challenge
   class-htaccess.php        Authorization header pass-through rules
+  class-adapter.php         MCP Adapter detection + one-click install/activate
+  class-icons.php           Inline SVG icon set
   class-debug.php           Opt-in privacy-safe diagnostic log
   class-admin.php           Settings page (enqueues assets/)
 assets/

@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,14 +30,15 @@ Because authorization uses your WordPress login, Claude acts with exactly your a
 * Discovery: RFC 8414 authorization server metadata and RFC 9728 protected resource metadata.
 * Emerald-themed consent screen; sign in with your existing WordPress account.
 * Dependency-free (no Composer libraries bundled).
+* One-click install &amp; activate for the required MCP Adapter dependency, straight from its official GitHub release.
 * Designed settings page with one-click connector URL, live status checks, an opt-in privacy-safe diagnostic log, and built-in setup guides for Cloudflare, LiteSpeed, other caches, Nginx/Apache, and ModSecurity.
 * Automatic Authorization-header pass-through (.htaccess) and cache-proof auth challenges so the flow survives common hosting setups.
 
 == Installation ==
 
-1. Install and activate the official **MCP Adapter** plugin (and, on WordPress 6.8, the **Abilities API** plugin; on 6.9+ it is built into core).
-2. Install and activate **Arzo MCP Connect**.
-3. Go to **Settings → Arzo MCP Connect** and copy the Connector URL.
+1. Install and activate **Arzo MCP Connect**.
+2. Go to **Settings → Arzo MCP Connect**. If the **MCP Adapter** dependency isn’t active, click **Install & activate adapter** — the plugin fetches the official release from github.com/WordPress/mcp-adapter and activates it for you. (You can still install it manually if you prefer.)
+3. Copy the Connector URL.
 4. In Claude: **Settings → Connectors → Add custom connector**, paste the URL, and click **Connect**.
 5. Sign in with your WordPress account and approve. Claude can now use your site's MCP tools.
 
@@ -58,6 +59,10 @@ Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTH
 If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was issued but no request follows it, a firewall in front of WordPress is blocking Claude's bearer-token requests — often a 403 "Your request was blocked." On Cloudflare, add a WAF custom rule that Skips Managed Rules, Bot Fight Mode and Rate Limiting for URI paths starting with `/wp-json/mcp/`, `/wp-json/arzo-mcp/`, and `/.well-known/`. On hosts with ModSecurity/LiteSpeed, ask support to disable ModSecurity for `/wp-json/mcp/` (the OWASP rule set often false-positives on JWTs). This is a CDN/hosting setting, not a plugin bug.
 
 == Changelog ==
+
+= 1.2.0 =
+* One-click MCP Adapter setup: if the required “MCP Adapter” plugin is missing or inactive, the settings page (and an admin notice) now offers an “Install & activate” / “Activate” button that fetches the official release from github.com/WordPress/mcp-adapter and activates it — no manual download. Failures fall back to a manual-install link. Gated by the install_plugins capability.
+* The Status card now distinguishes not installed / inactive / active.
 
 = 1.1.1 =
 * The settings page now fully takes over the WordPress admin canvas (dark emerald), removing the white background.
