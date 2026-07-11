@@ -4,7 +4,7 @@ Tags: mcp, ai, claude, oauth, model-context-protocol
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,8 @@ Because authorization uses your WordPress login, Claude acts with exactly your a
 * Discovery: RFC 8414 authorization server metadata and RFC 9728 protected resource metadata.
 * Emerald-themed consent screen; sign in with your existing WordPress account.
 * Dependency-free (no Composer libraries bundled).
-* Admin screen showing the exact connector URL to paste into Claude.
+* Designed settings page with one-click connector URL, live status checks, an opt-in privacy-safe diagnostic log, and built-in setup guides for Cloudflare, LiteSpeed, other caches, Nginx/Apache, and ModSecurity.
+* Automatic Authorization-header pass-through (.htaccess) and cache-proof auth challenges so the flow survives common hosting setups.
 
 == Installation ==
 
@@ -57,6 +58,12 @@ Add this to your site's root .htaccess: `SetEnvIf Authorization "(.*)" HTTP_AUTH
 If the diagnostic log (Settings → Arzo MCP Connect) shows an access token was issued but no request follows it, a firewall in front of WordPress is blocking Claude's bearer-token requests — often a 403 "Your request was blocked." On Cloudflare, add a WAF custom rule that Skips Managed Rules, Bot Fight Mode and Rate Limiting for URI paths starting with `/wp-json/mcp/`, `/wp-json/arzo-mcp/`, and `/.well-known/`. On hosts with ModSecurity/LiteSpeed, ask support to disable ModSecurity for `/wp-json/mcp/` (the OWASP rule set often false-positives on JWTs). This is a CDN/hosting setting, not a plugin bug.
 
 == Changelog ==
+
+= 1.1.0 =
+* Redesigned the settings page in a dark emerald design language: glassmorphism cards, live status badges, one-click copy for the connector URL and Client ID, and colour-coded diagnostic events.
+* Added built-in, tabbed setup guides for Cloudflare, LiteSpeed Cache, WP Rocket / W3TC / WP Super Cache, Nginx / Apache, and ModSecurity — so the CDN/WAF/cache exclusions that keep the flow working are copy-paste simple.
+* Styling is fully tokenised (CSS variables + clamp/calc, BEM) and scoped to the plugin screen; assets are enqueued only there.
+* First tagged release.
 
 = 1.0.8 =
 * Diagnostic log now shows URLs with normal slashes instead of JSON-escaped "\/".
